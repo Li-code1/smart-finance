@@ -146,7 +146,7 @@ export const Dashboard = ({ transacoes, onAdicionarGasto, onExcluirGasto }: Dash
                   <Cell key={`cell-${index}`} fill={CORES[index % CORES.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value: number) => `R$ ${value.toFixed(2)}`} />
+              <Tooltip formatter={(value: any) => `R$ ${Number(value).toFixed(2)}`} />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
@@ -159,7 +159,7 @@ export const Dashboard = ({ transacoes, onAdicionarGasto, onExcluirGasto }: Dash
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="mes" />
               <YAxis tickFormatter={(value) => `R$ ${value}`} />
-              <Tooltip formatter={(value: number) => `R$ ${value.toFixed(2)}`} />
+              <Tooltip formatter={(value: any) => `R$ ${Number(value).toFixed(2)}`} />
               <Legend />
               <Bar dataKey="gastoAcumulado" name="Total Gasto (Acumulado)" fill="#94A3B8" radius={[4, 4, 0, 0]} />
               <Bar dataKey="reservaAcumulada" name="Total Poupatudo (Acumulado)" fill="#4F46E5" radius={[4, 4, 0, 0]} />
