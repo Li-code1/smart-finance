@@ -31,10 +31,14 @@ export const Dashboard = ({ transacoes, onAdicionarGasto, onExcluirGasto }: Dash
     const elemento = document.querySelector('main'); 
     if (!elemento) return;
 
+    // Capturar o layout completo mesmo no celular
     const canvas = await html2canvas(elemento as HTMLElement, {
       scale: 2,
       useCORS: true,
-      logging: false
+      logging: false,
+      windowWidth: 1280, // Força a renderização em largura de desktop para o PDF
+      width: elemento.scrollWidth,
+      height: elemento.scrollHeight
     });
     
     const imgData = canvas.toDataURL('image/png');
