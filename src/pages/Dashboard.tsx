@@ -5,7 +5,7 @@ import {
   PieChart, Pie, ResponsiveContainer, Tooltip, Legend, Cell, 
   BarChart, Bar, XAxis, YAxis, CartesianGrid 
 } from 'recharts';
-import { Wallet, TrendingUp, Trash2, Lightbulb, LogOut, Download } from 'lucide-react';
+import { Wallet, TrendingUp, Trash2, Lightbulb, LogOut, Download, Target } from 'lucide-react';
 import { FormularioGasto } from '../components/FormularioGasto';
 import { useAuth } from '../context/AuthContext';
 
@@ -55,9 +55,10 @@ export const Dashboard = ({ transacoes, onAdicionarGasto, onExcluirGasto }: Dash
   };
 
   const analise = useMemo(() => {
-    // Cálculo dinâmico: o total é recalculado a cada mudança nas transações
     const totalAtual = transacoes.reduce((acc, t) => acc + t.valor, 0);
     const economiaMensal = totalAtual * 0.15; 
+    //Meta Inteligente: O teto de gastos ideal (85% do total)
+    const metaInteligenteGasto = totalAtual - economiaMensal;
 
     const agrupado = transacoes.reduce((acc: Record<string, number>, t) => {
       acc[t.categoria] = (acc[t.categoria] || 0) + t.valor;
@@ -69,20 +70,17 @@ export const Dashboard = ({ transacoes, onAdicionarGasto, onExcluirGasto }: Dash
       ? dadosPizza.reduce((prev, curr) => (prev.value > curr.value ? prev : curr))
       : { name: 'Nenhum', value: 0 };
 
-    // Projeção Dinâmica: As barras de 1 a 6 meses "sobem" ou "descem" na hora
     const dadosProjecao = Array.from({ length: 6 }, (_, i) => {
       const meses = i + 1;
       return {
         mes: `${meses}º Mês`,
-        // Reflete o acúmulo baseado no seu gasto atual em tempo real
         gastoAcumulado: parseFloat((totalAtual * meses).toFixed(2)),
-        // Reflete a reserva baseada no seu gasto atual em tempo real
         reservaAcumulada: parseFloat((economiaMensal * meses).toFixed(2))
       };
     });
 
-    return { totalAtual, dadosPizza, dominante, dadosProjecao, economiaMensal };
-  }, [transacoes]); // A dependência [transacoes] garante a atualização instantânea
+    return { totalAtual, dadosPizza, dominante, dadosProjecao, economiaMensal, metaInteligenteGasto };
+  }, [transacoes]); 
 
   const CORES = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
@@ -113,11 +111,20 @@ export const Dashboard = ({ transacoes, onAdicionarGasto, onExcluirGasto }: Dash
 
       <FormularioGasto onAdicionar={onAdicionarGasto} />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      {/* Grid ajustada para 4 colunas no Desktop e 2 no Tablet/Mobile */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="p-5 rounded-2xl bg-white shadow-sm border-b-4 border-indigo-500">
           <p className="text-sm text-gray-500 font-medium text-left">Gasto Mensal Total</p>
           <h3 className="text-2xl font-bold text-gray-800 flex justify-between items-center mt-1">
             R$ {analise.totalAtual.toFixed(2)} <Wallet className="text-indigo-500" />
+          </h3>
+        </div>
+
+        {/* Card de Meta Inteligente de Gasto */}
+        <div className="p-5 rounded-2xl bg-white shadow-sm border-b-4 border-emerald-500">
+          <p className="text-sm text-gray-500 font-medium text-left">Meta de Gasto (85%)</p>
+          <h3 className="text-2xl font-bold text-emerald-600 flex justify-between items-center mt-1">
+            R$ {analise.metaInteligenteGasto.toFixed(2)} <Target className="text-emerald-500" />
           </h3>
         </div>
 
