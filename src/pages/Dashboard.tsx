@@ -26,24 +26,35 @@ interface DashboardProps {
 export const Dashboard = ({ transacoes, onAdicionarGasto, onExcluirGasto }: DashboardProps) => {
   const { logout } = useAuth();
 
-  // Função para baixar a página inteira como PDF
+  // Função para baixar a página inteira como PDF com correção para mobile
   const baixarRelatorio = async () => {
     const elemento = document.querySelector('main'); 
     if (!elemento) return;
 
-    // Capturar o layout completo mesmo no celular
+    // Armazena o estilo original para restaurar após o print
+    const estiloOriginal = elemento.style.width;
+    
+    // Força temporariamente uma largura de desktop para evitar cortes no celular
+    elemento.style.width = '1280px';
+
     const canvas = await html2canvas(elemento as HTMLElement, {
-      scale: 2,
+      scale: 2, // Melhora a resolução do documento final
       useCORS: true,
       logging: false,
-      windowWidth: 1280, // Força a renderização em largura de desktop para o PDF
-      width: elemento.scrollWidth,
-      height: elemento.scrollHeight
+      windowWidth: 1280, // Simula uma janela de navegador desktop
+      width: 1280,       // Captura a largura total definida
+      scrollX: 0,
+      scrollY: -window.scrollY // Compensa o scroll atual do usuário
     });
     
+    // Restaura o layout responsivo original na tela
+    elemento.style.width = estiloOriginal;
+
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
     const larguraPdf = pdf.internal.pageSize.getWidth();
+    
+    // Calcula a altura proporcional para manter a integridade visual dos gráficos
     const alturaPdf = (canvas.height * larguraPdf) / canvas.width;
 
     pdf.addImage(imgData, 'PNG', 0, 0, larguraPdf, alturaPdf);
