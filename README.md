@@ -27,7 +27,7 @@ Este ecossistema foi desenvolvido como parte de uma transição estratégica par
 *   **Ferramenta de Build**: Vite (garantindo alta performance no desenvolvimento).
 *   **Estilização**: Tailwind CSS para um design moderno e responsivo.
 *   **Visualização de Dados**: Recharts para criação de gráficos de composição (Pizza) e projeções (Barras).
-*   **Exportação de Dados**: html2canvas e jsPDF para geração de relatórios em PDF[cite: 3].
+*   **Exportação de Dados**: html2canvas e jsPDF para geração de relatórios em PDF.
 *   **Ícones**: Lucide React.
 *   **Backend & Persistência**: Sistema híbrido com JSON Server (API REST) e LocalStorage (Navegador).
 *   **Gestão de Estado**: Context API para gerenciamento de autenticação global.
