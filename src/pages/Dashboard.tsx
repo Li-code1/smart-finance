@@ -3,7 +3,7 @@ import {
   PieChart, Pie, ResponsiveContainer, Tooltip, Legend, Cell, 
   BarChart, Bar, XAxis, YAxis, CartesianGrid 
 } from 'recharts';
-import { Wallet, TrendingUp, Trash2, Lightbulb, CheckCircle, LogOut } from 'lucide-react';
+import { Wallet, TrendingUp, Trash2, Lightbulb, LogOut } from 'lucide-react';
 import { FormularioGasto } from '../components/FormularioGasto';
 import { useAuth } from '../context/AuthContext';
 
