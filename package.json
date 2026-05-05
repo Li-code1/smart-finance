@@ -12,7 +12,9 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "html2canvas": "^1.4.1",
     "json-server": "^1.0.0-beta.15",
+    "jspdf": "^4.2.1",
     "lucide-react": "^1.14.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
