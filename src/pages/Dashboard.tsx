@@ -125,7 +125,7 @@ export const Dashboard = ({ transacoes, onAdicionarGasto, onExcluirGasto }: Dash
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie data={analise.dadosPizza} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value" nameKey="name">
-                {analise.dadosPizza.map((entry, index) => (
+                {analise.dadosPizza.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={CORES[index % CORES.length]} />
                 ))}
               </Pie>
