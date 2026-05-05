@@ -26,35 +26,28 @@ interface DashboardProps {
 export const Dashboard = ({ transacoes, onAdicionarGasto, onExcluirGasto }: DashboardProps) => {
   const { logout } = useAuth();
 
-  // Função para baixar a página inteira como PDF com correção para mobile
   const baixarRelatorio = async () => {
     const elemento = document.querySelector('main'); 
     if (!elemento) return;
 
-    // Armazena o estilo original para restaurar após o print
     const estiloOriginal = elemento.style.width;
-    
-    // Força temporariamente uma largura de desktop para evitar cortes no celular
-    elemento.style.width = '1280px';
+    elemento.style.width = '1280px'; 
 
     const canvas = await html2canvas(elemento as HTMLElement, {
-      scale: 2, // Melhora a resolução do documento final
+      scale: 2,
       useCORS: true,
       logging: false,
-      windowWidth: 1280, // Simula uma janela de navegador desktop
-      width: 1280,       // Captura a largura total definida
+      windowWidth: 1280,
+      width: 1280,
       scrollX: 0,
-      scrollY: -window.scrollY // Compensa o scroll atual do usuário
+      scrollY: -window.scrollY
     });
     
-    // Restaura o layout responsivo original na tela
     elemento.style.width = estiloOriginal;
 
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
     const larguraPdf = pdf.internal.pageSize.getWidth();
-    
-    // Calcula a altura proporcional para manter a integridade visual dos gráficos
     const alturaPdf = (canvas.height * larguraPdf) / canvas.width;
 
     pdf.addImage(imgData, 'PNG', 0, 0, larguraPdf, alturaPdf);
@@ -62,7 +55,10 @@ export const Dashboard = ({ transacoes, onAdicionarGasto, onExcluirGasto }: Dash
   };
 
   const analise = useMemo(() => {
-    const total = transacoes.reduce((acc, t) => acc + t.valor, 0);
+    // Cálculo dinâmico: o total é recalculado a cada mudança nas transações
+    const totalAtual = transacoes.reduce((acc, t) => acc + t.valor, 0);
+    const economiaMensal = totalAtual * 0.15; 
+
     const agrupado = transacoes.reduce((acc: Record<string, number>, t) => {
       acc[t.categoria] = (acc[t.categoria] || 0) + t.valor;
       return acc;
@@ -73,14 +69,20 @@ export const Dashboard = ({ transacoes, onAdicionarGasto, onExcluirGasto }: Dash
       ? dadosPizza.reduce((prev, curr) => (prev.value > curr.value ? prev : curr))
       : { name: 'Nenhum', value: 0 };
 
-    const dadosProjecao = Array.from({ length: 6 }, (_, i) => ({
-      mes: `Mês ${i + 1}`,
-      atual: total,
-      comEconomia: total * 0.85 
-    }));
+    // Projeção Dinâmica: As barras de 1 a 6 meses "sobem" ou "descem" na hora
+    const dadosProjecao = Array.from({ length: 6 }, (_, i) => {
+      const meses = i + 1;
+      return {
+        mes: `${meses}º Mês`,
+        // Reflete o acúmulo baseado no seu gasto atual em tempo real
+        gastoAcumulado: parseFloat((totalAtual * meses).toFixed(2)),
+        // Reflete a reserva baseada no seu gasto atual em tempo real
+        reservaAcumulada: parseFloat((economiaMensal * meses).toFixed(2))
+      };
+    });
 
-    return { total, dadosPizza, dominante, dadosProjecao };
-  }, [transacoes]);
+    return { totalAtual, dadosPizza, dominante, dadosProjecao, economiaMensal };
+  }, [transacoes]); // A dependência [transacoes] garante a atualização instantânea
 
   const CORES = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
@@ -113,9 +115,9 @@ export const Dashboard = ({ transacoes, onAdicionarGasto, onExcluirGasto }: Dash
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="p-5 rounded-2xl bg-white shadow-sm border-b-4 border-indigo-500">
-          <p className="text-sm text-gray-500 font-medium text-left">Saldo de Gastos</p>
+          <p className="text-sm text-gray-500 font-medium text-left">Gasto Mensal Total</p>
           <h3 className="text-2xl font-bold text-gray-800 flex justify-between items-center mt-1">
-            R$ {analise.total.toFixed(2)} <Wallet className="text-indigo-500" />
+            R$ {analise.totalAtual.toFixed(2)} <Wallet className="text-indigo-500" />
           </h3>
         </div>
 
@@ -127,16 +129,16 @@ export const Dashboard = ({ transacoes, onAdicionarGasto, onExcluirGasto }: Dash
         </div>
 
         <div className="p-5 rounded-2xl bg-indigo-600 text-white shadow-lg">
-          <p className="text-sm text-indigo-100 font-medium text-left">Economia Sugerida (15%)</p>
+          <p className="text-sm text-indigo-100 font-medium text-left">Meta de Poupança (15%)</p>
           <h3 className="text-2xl font-bold flex justify-between items-center mt-1">
-            R$ {(analise.total * 0.15).toFixed(2)} <Lightbulb className="text-yellow-300" />
+            R$ {analise.economiaMensal.toFixed(2)} <Lightbulb className="text-yellow-300" />
           </h3>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <section className="bg-white p-6 rounded-2xl shadow-sm h-[400px]">
-          <h2 className="text-lg font-bold mb-4 text-left">Composição</h2>
+          <h2 className="text-lg font-bold mb-4 text-left">Composição por Categoria</h2>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie data={analise.dadosPizza} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value" nameKey="name">
@@ -144,35 +146,41 @@ export const Dashboard = ({ transacoes, onAdicionarGasto, onExcluirGasto }: Dash
                   <Cell key={`cell-${index}`} fill={CORES[index % CORES.length]} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip formatter={(value: number) => `R$ ${value.toFixed(2)}`} />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
         </section>
 
         <section className="bg-white p-6 rounded-2xl shadow-sm h-[400px]">
-          <h2 className="text-lg font-bold mb-4 text-left">Metas de Economia</h2>
+          <h2 className="text-lg font-bold mb-4 text-left">Projeção Semestral Acumulada</h2>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={analise.dadosProjecao}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="mes" />
-              <YAxis />
-              <Tooltip />
+              <YAxis tickFormatter={(value) => `R$ ${value}`} />
+              <Tooltip formatter={(value: number) => `R$ ${value.toFixed(2)}`} />
               <Legend />
-              <Bar dataKey="atual" name="Cenário Atual" fill="#E2E8F0" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="comEconomia" name="Meta Inteligente" fill="#4F46E5" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="gastoAcumulado" name="Total Gasto (Acumulado)" fill="#94A3B8" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="reservaAcumulada" name="Total Poupatudo (Acumulado)" fill="#4F46E5" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </section>
       </div>
 
       <section className="bg-white p-6 rounded-2xl shadow-sm">
-        <h2 className="text-lg font-bold mb-4 text-left">Histórico Recente</h2>
+        <h2 className="text-lg font-bold mb-4 text-left">Extrato de Movimentações</h2>
         {transacoes.map(t => (
           <div key={t.id} className="flex justify-between items-center p-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
             <div className="text-left">
               <p className="font-bold text-slate-800">{t.descricao}</p>
-              <p className="text-xs text-slate-400 uppercase font-bold">{t.categoria}</p>
+              <div className="flex gap-2 items-center">
+                <p className="text-xs text-slate-400 uppercase font-bold">{t.categoria}</p>
+                <span className="text-[10px] text-slate-400">•</span>
+                <p className="text-xs text-slate-400 font-medium">
+                  {new Date(t.data).toLocaleDateString('pt-BR')}
+                </p>
+              </div>
             </div>
             <div className="flex items-center gap-4">
               <span className="font-bold text-indigo-600">R$ {t.valor.toFixed(2)}</span>
