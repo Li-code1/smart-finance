@@ -15,9 +15,19 @@ function AppContent() {
   const { logado } = useAuth();
   const [transacoes, setTransacoes] = useState<Transacao[]>([]);
 
-  // 1. Carregar Dados (Busca local ou servidor)
+  // 1. Carregar Dados com Detecção Inteligente
   useEffect(() => {
     if (logado) {
+      const isLocal = window.location.hostname === 'localhost';
+
+      // Se estiver no celular ou Vercel (não é localhost), vai direto para o LocalStorage
+      if (!isLocal) {
+        const salvo = localStorage.getItem('@ConsumaMais:transacoes');
+        if (salvo) setTransacoes(JSON.parse(salvo));
+        return;
+      }
+
+      // Se estiver no computador (localhost), tenta o JSON Server
       fetch('http://localhost:3001/transacoes')
         .then(res => res.json())
         .then(data => setTransacoes(data))
@@ -28,40 +38,54 @@ function AppContent() {
     }
   }, [logado]);
 
-  // 2. Adicionar Gasto
+  // 2. Adicionar Gasto Híbrido
   const adicionarGasto = async (novoGasto: Omit<Transacao, 'id'>) => {
-    try {
-      const res = await fetch('http://localhost:3001/transacoes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(novoGasto),
-      });
-      if (res.ok) {
-        const salvo = await res.json();
-        setTransacoes(prev => [...prev, salvo]);
-        return;
+    const isLocal = window.location.hostname === 'localhost';
+
+    // Tenta salvar no Servidor apenas se estiver no localhost
+    if (isLocal) {
+      try {
+        const res = await fetch('http://localhost:3001/transacoes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(novoGasto),
+        });
+        if (res.ok) {
+          const salvo = await res.json();
+          setTransacoes(prev => [...prev, salvo]);
+          return;
+        }
+      } catch (err) {
+        console.log("Servidor offline, usando LocalStorage");
       }
-    } catch {
-      const transacaoLocal = { ...novoGasto, id: crypto.randomUUID() };
-      const novasTransacoes = [...transacoes, transacaoLocal];
-      setTransacoes(novasTransacoes);
-      localStorage.setItem('@ConsumaMais:transacoes', JSON.stringify(novasTransacoes));
     }
+
+    // Fallback ou Uso Direto no Celular/Vercel
+    const transacaoLocal = { ...novoGasto, id: crypto.randomUUID() };
+    const novasTransacoes = [...transacoes, transacaoLocal];
+    setTransacoes(novasTransacoes);
+    localStorage.setItem('@ConsumaMais:transacoes', JSON.stringify(novasTransacoes));
   };
 
-  // 3. Excluir Gasto
+  // 3. Excluir Gasto Híbrido
   const excluirGasto = async (id: string) => {
-    try {
-      const res = await fetch(`http://localhost:3001/transacoes/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        setTransacoes(prev => prev.filter(t => t.id !== id));
-        return;
+    const isLocal = window.location.hostname === 'localhost';
+
+    if (isLocal) {
+      try {
+        const res = await fetch(`http://localhost:3001/transacoes/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          setTransacoes(prev => prev.filter(t => t.id !== id));
+          return;
+        }
+      } catch (err) {
+        console.log("Erro ao excluir no servidor, tentando local");
       }
-    } catch {
-      const filtradas = transacoes.filter(t => t.id !== id);
-      setTransacoes(filtradas);
-      localStorage.setItem('@ConsumaMais:transacoes', JSON.stringify(filtradas));
     }
+
+    const filtradas = transacoes.filter(t => t.id !== id);
+    setTransacoes(filtradas);
+    localStorage.setItem('@ConsumaMais:transacoes', JSON.stringify(filtradas));
   };
 
   if (!logado) return <Login />;
