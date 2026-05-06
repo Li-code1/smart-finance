@@ -51,7 +51,7 @@ export const Dashboard = ({ transacoes, onAdicionarGasto, onExcluirGasto }: Dash
     const alturaPdf = (canvas.height * larguraPdf) / canvas.width;
 
     pdf.addImage(imgData, 'PNG', 0, 0, larguraPdf, alturaPdf);
-    pdf.save(`Relatorio_ConsumaMais_${new Date().toLocaleDateString()}.pdf`);
+    pdf.save(`Relatorio_SmartFinance_${new Date().toLocaleDateString()}.pdf`);
   };
 
   const analise = useMemo(() => {
@@ -88,7 +88,7 @@ export const Dashboard = ({ transacoes, onAdicionarGasto, onExcluirGasto }: Dash
     <main className="p-4 md:p-8 bg-slate-50 min-h-screen">
       <header className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 text-left">Consuma+</h1>
+          <h1 className="text-3xl font-bold text-slate-900 text-left">SmartFinance</h1>
           <p className="text-slate-500 font-medium text-left">Consumer Insight Intelligence</p>
         </div>
         

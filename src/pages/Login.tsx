@@ -17,7 +17,7 @@ export const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
       <form onSubmit={handleLogin} className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-black text-indigo-600">Consuma+</h2>
+          <h2 className="text-3xl font-black text-indigo-600">SmartFinance</h2>
           <p className="text-slate-400 font-medium">Painel de Gestão Inteligente</p>
         </div>
         
