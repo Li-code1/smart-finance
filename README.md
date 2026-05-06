@@ -1,4 +1,4 @@
-# Consuma+ | Consumer Insight Intelligence
+# SmartFinance | Consumer Insight Intelligence
 
 O **SmartFinance** é uma plataforma de inteligência financeira desenvolvida para transformar a gestão de gastos pessoais em uma experiência analítica e estratégica. O projeto foca em converter dados brutos de transações em insights acionáveis, auxiliando usuários a identificar padrões de consumo e estabelecer metas de economia inteligentes.
 
