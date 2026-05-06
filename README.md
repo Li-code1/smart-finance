@@ -89,9 +89,7 @@ Para testar as funcionalidades do dashboard, utilize as seguintes credenciais na
 
 ## 📈 Trajetória Técnica
 
-O desenvolvimento do Consuma+ faz parte de um portfólio robusto que inclui:
-*   **SmartMart Pro**: Plataforma de BI para varejo focada em visualização de dados com Python e React.
-*   **Task Management API**: Implementação de processos assíncronos com FastAPI, Celery e Redis.
+O desenvolvimento do SmartFinance faz parte de um projeto de conclusão do curso de Front-End da AdaTech.
 
 ---
 
