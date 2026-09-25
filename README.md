@@ -35,10 +35,12 @@ O SmartFinance não é apenas um dashboard de visualização; é um ecossistema 
 *   **Ícones**: Lucide React.
 *   **Backend & Persistência**: Supabase (PostgreSQL + Autenticação real de usuários).
 *   **Gestão de Estado**: Context API para gerenciamento de autenticação global.
+*   **PWA**: instalável como aplicativo (desktop/celular) e com carregamento offline do app via `vite-plugin-pwa`.
 
 ## 📊 Funcionalidades Principais
 
 *   **Autenticação Real Multiusuário**: Cada pessoa cria sua própria conta (e-mail/senha) via Supabase Auth. Ninguém precisa da senha de admin para testar — e os dados de cada usuário ficam isolados dos demais (Row Level Security no banco).
+*   **Instalável (PWA)**: o navegador oferece a opção "Instalar app"/"Adicionar à tela de início"; depois de instalado uma vez, o app abre offline (a interface carrega normalmente; leituras recentes do Supabase ficam em cache e novos lançamentos exigem conexão).
 *   **Relatórios em PDF**: Exportação instantânea do dashboard completo (gráficos e histórico) para arquivos PDF, facilitando o compartilhamento da análise financeira.
 *   **Dashboard Inteligente**: Painel visual com saldo total de gastos e identificação do foco principal de consumo.
 *   **Metas de Economia**: Algoritmo que projeta cenários de economia (15%) baseados no comportamento financeiro atual.
