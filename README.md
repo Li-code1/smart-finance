@@ -33,12 +33,12 @@ O SmartFinance não é apenas um dashboard de visualização; é um ecossistema 
 *   **Visualização de Dados**: Recharts para criação de gráficos de composição (Pizza) e projeções (Barras).
 *   **Exportação de Dados**: html2canvas e jsPDF para geração de relatórios em PDF.
 *   **Ícones**: Lucide React.
-*   **Backend & Persistência**: Sistema híbrido com JSON Server (API REST) e LocalStorage (Navegador).
+*   **Backend & Persistência**: Supabase (PostgreSQL + Autenticação real de usuários).
 *   **Gestão de Estado**: Context API para gerenciamento de autenticação global.
 
 ## 📊 Funcionalidades Principais
 
-*   **Persistência Híbrida**: O sistema detecta automaticamente o ambiente. Prioriza o JSON Server localmente, mas utiliza o **LocalStorage** para manter os dados no navegador caso o servidor esteja offline ou o projeto esteja hospedado no Vercel.
+*   **Autenticação Real Multiusuário**: Cada pessoa cria sua própria conta (e-mail/senha) via Supabase Auth. Ninguém precisa da senha de admin para testar — e os dados de cada usuário ficam isolados dos demais (Row Level Security no banco).
 *   **Relatórios em PDF**: Exportação instantânea do dashboard completo (gráficos e histórico) para arquivos PDF, facilitando o compartilhamento da análise financeira.
 *   **Dashboard Inteligente**: Painel visual com saldo total de gastos e identificação do foco principal de consumo.
 *   **Metas de Economia**: Algoritmo que projeta cenários de economia (15%) baseados no comportamento financeiro atual.
@@ -50,6 +50,7 @@ O SmartFinance não é apenas um dashboard de visualização; é um ecossistema 
 ### Pré-requisitos
 *   Node.js instalado.
 *   Gerenciador de pacotes (npm ou yarn).
+*   Uma conta gratuita no [Supabase](https://supabase.com).
 
 ### Passo a Passo
 
@@ -61,31 +62,32 @@ O SmartFinance não é apenas um dashboard de visualização; é um ecossistema 
 2.  **Instale as dependências**:
     ```bash
     npm install
-    
-```
+    ```
 
-3.  **Inicie o Backend (Opcional)**:
-    Para utilizar a persistência via API local, execute em um terminal:
+3.  **Crie um projeto no Supabase**:
+    *   Acesse [supabase.com](https://supabase.com), crie uma conta e clique em "New project" (plano gratuito).
+    *   Dentro do projeto, abra **SQL Editor** > **New query**, cole o conteúdo do arquivo `supabase/schema.sql` deste repositório e clique em **Run**. Isso cria a tabela `transacoes` e as regras de segurança (cada usuário só acessa seus próprios dados).
+    *   Vá em **Project Settings > API** e copie a **Project URL** e a chave **anon public**.
+
+4.  **Configure as variáveis de ambiente**:
+    Copie `.env.example` para `.env` e cole os valores obtidos no passo anterior:
     ```bash
-    npm run server
-    
-```
-    *Nota: Se o servidor não estiver rodando, o sistema utilizará automaticamente o LocalStorage do seu navegador.*
+    cp .env.example .env
+    ```
+    ```env
+    VITE_SUPABASE_URL=https://SEU-PROJETO.supabase.co
+    VITE_SUPABASE_ANON_KEY=sua-chave-anon-public-aqui
+    ```
 
-4.  **Inicie o Frontend**:
-    Em outro terminal, execute a aplicação:
+5.  **Inicie o Frontend**:
     ```bash
     npm run dev
-    
-```
+    ```
 
 ## 🔑 Acesso ao Sistema
-Para testar as funcionalidades do dashboard, utilize as seguintes credenciais na tela de login:
+Cada pessoa pode criar sua própria conta gratuitamente pela própria tela de login (aba "Criar conta"), com e-mail e senha à sua escolha — não é mais necessário nenhum login de administrador para testar o sistema.
 
-**E-mail**: admin@admin.com
-**Senha**: 123
-
-*Nota: Como a autenticação é gerenciada via Context API para fins de demonstração, o sistema aceita qualquer combinação de e-mail e senha preenchidos para facilitar a navegação rápida pelo avaliador.*
+*Nota: por padrão o Supabase exige confirmação por e-mail antes do primeiro login. Se preferir liberar o acesso imediato durante testes, desative "Confirm email" em **Authentication > Providers > Email** no painel do Supabase.*
 
 ## 📈 Trajetória Técnica
 

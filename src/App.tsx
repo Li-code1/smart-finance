@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Dashboard } from './pages/Dashboard';
 import { Login } from './pages/Login';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { supabase } from './lib/supabaseClient';
 
 interface Transacao {
   id: string;
@@ -12,89 +13,76 @@ interface Transacao {
 }
 
 function AppContent() {
-  const { logado } = useAuth();
+  const { logado, carregando } = useAuth();
   const [transacoes, setTransacoes] = useState<Transacao[]>([]);
+  const [carregandoDados, setCarregandoDados] = useState(false);
 
-  // 1. Carregar Dados com Detecção Inteligente
+  // Carrega as transações do Supabase (a RLS garante que só vêm as do usuário logado)
   useEffect(() => {
-    if (logado) {
-      const isLocal = window.location.hostname === 'localhost';
-
-      // Se estiver no celular ou Vercel (não é localhost), vai direto para o LocalStorage
-      if (!isLocal) {
-        const salvo = localStorage.getItem('@ConsumaMais:transacoes');
-        if (salvo) setTransacoes(JSON.parse(salvo));
-        return;
-      }
-
-      // Se estiver no computador (localhost), tenta o JSON Server
-      fetch('http://localhost:3001/transacoes')
-        .then(res => res.json())
-        .then(data => setTransacoes(data))
-        .catch(() => {
-          const salvo = localStorage.getItem('@ConsumaMais:transacoes');
-          if (salvo) setTransacoes(JSON.parse(salvo));
-        });
+    if (!logado) {
+      setTransacoes([]);
+      return;
     }
+
+    setCarregandoDados(true);
+    supabase
+      .from('transacoes')
+      .select('id, descricao, valor, categoria, data')
+      .order('data', { ascending: false })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Erro ao carregar transações:', error.message);
+        } else {
+          setTransacoes(data ?? []);
+        }
+        setCarregandoDados(false);
+      });
   }, [logado]);
 
-  // 2. Adicionar Gasto Híbrido
   const adicionarGasto = async (novoGasto: Omit<Transacao, 'id'>) => {
-    const isLocal = window.location.hostname === 'localhost';
+    const { data, error } = await supabase
+      .from('transacoes')
+      .insert(novoGasto)
+      .select('id, descricao, valor, categoria, data')
+      .single();
 
-    // Tenta salvar no Servidor apenas se estiver no localhost
-    if (isLocal) {
-      try {
-        const res = await fetch('http://localhost:3001/transacoes', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(novoGasto),
-        });
-        if (res.ok) {
-          const salvo = await res.json();
-          setTransacoes(prev => [...prev, salvo]);
-          return;
-        }
-      } catch (err) {
-        console.log("Servidor offline, usando LocalStorage");
-      }
+    if (error) {
+      console.error('Erro ao adicionar gasto:', error.message);
+      alert('Não foi possível salvar o gasto. Tente novamente.');
+      return;
     }
 
-    // Fallback ou Uso Direto no Celular/Vercel
-    const transacaoLocal = { ...novoGasto, id: crypto.randomUUID() };
-    const novasTransacoes = [...transacoes, transacaoLocal];
-    setTransacoes(novasTransacoes);
-    localStorage.setItem('@ConsumaMais:transacoes', JSON.stringify(novasTransacoes));
+    setTransacoes(prev => [data, ...prev]);
   };
 
-  // 3. Excluir Gasto Híbrido
   const excluirGasto = async (id: string) => {
-    const isLocal = window.location.hostname === 'localhost';
+    const { error } = await supabase.from('transacoes').delete().eq('id', id);
 
-    if (isLocal) {
-      try {
-        const res = await fetch(`http://localhost:3001/transacoes/${id}`, { method: 'DELETE' });
-        if (res.ok) {
-          setTransacoes(prev => prev.filter(t => t.id !== id));
-          return;
-        }
-      } catch (err) {
-        console.log("Erro ao excluir no servidor, tentando local");
-      }
+    if (error) {
+      console.error('Erro ao excluir gasto:', error.message);
+      alert('Não foi possível excluir o gasto. Tente novamente.');
+      return;
     }
 
-    const filtradas = transacoes.filter(t => t.id !== id);
-    setTransacoes(filtradas);
-    localStorage.setItem('@ConsumaMais:transacoes', JSON.stringify(filtradas));
+    setTransacoes(prev => prev.filter(t => t.id !== id));
   };
+
+  if (carregando) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100">
+        <p className="text-slate-500 font-bold">Carregando...</p>
+      </div>
+    );
+  }
 
   if (!logado) return <Login />;
 
   return (
-    <Dashboard 
-      transacoes={transacoes} 
-      onAdicionarGasto={adicionarGasto} 
-      onExcluirGasto={excluirGasto} 
+    <Dashboard
+      transacoes={transacoes}
+      carregando={carregandoDados}
+      onAdicionarGasto={adicionarGasto}
+      onExcluirGasto={excluirGasto}
     />
   );
 }

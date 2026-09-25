@@ -19,11 +19,12 @@ interface Transacao {
 
 interface DashboardProps {
   transacoes: Transacao[];
+  carregando?: boolean;
   onAdicionarGasto: (gasto: Omit<Transacao, 'id'>) => void;
   onExcluirGasto: (id: string) => void;
 }
 
-export const Dashboard = ({ transacoes, onAdicionarGasto, onExcluirGasto }: DashboardProps) => {
+export const Dashboard = ({ transacoes, carregando, onAdicionarGasto, onExcluirGasto }: DashboardProps) => {
   const { logout } = useAuth();
 
   const baixarRelatorio = async () => {
@@ -177,6 +178,12 @@ export const Dashboard = ({ transacoes, onAdicionarGasto, onExcluirGasto }: Dash
 
       <section className="bg-white p-6 rounded-2xl shadow-sm">
         <h2 className="text-lg font-bold mb-4 text-left">Extrato de Movimentações</h2>
+        {carregando && (
+          <p className="text-slate-400 text-sm font-medium py-4">Carregando transações...</p>
+        )}
+        {!carregando && transacoes.length === 0 && (
+          <p className="text-slate-400 text-sm font-medium py-4">Nenhuma transação cadastrada ainda.</p>
+        )}
         {transacoes.map(t => (
           <div key={t.id} className="flex justify-between items-center p-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
             <div className="text-left">
