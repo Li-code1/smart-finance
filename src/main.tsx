@@ -20,4 +20,4 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
       console.error('Falha ao registrar o service worker:', err);
     });
   });
-}
+} 
