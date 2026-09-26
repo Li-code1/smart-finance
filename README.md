@@ -35,7 +35,7 @@ O SmartFinance não é apenas um dashboard de visualização; é um ecossistema 
 *   **Ícones**: Lucide React.
 *   **Backend & Persistência**: Supabase (PostgreSQL + Autenticação real de usuários).
 *   **Gestão de Estado**: Context API para gerenciamento de autenticação global.
-*   **PWA**: instalável como aplicativo (desktop/celular) e com carregamento offline do app via `vite-plugin-pwa`.
+*   **PWA**: instalável como aplicativo (desktop/celular) e com carregamento offline do app, via manifest + service worker próprios (sem depender de plugin de build).
 
 ## 📊 Funcionalidades Principais
 
@@ -85,6 +85,8 @@ O SmartFinance não é apenas um dashboard de visualização; é um ecossistema 
     ```bash
     npm run dev
     ```
+
+> **Nota sobre versões**: o projeto usa Vite 8, uma versão muito recente que trocou seu bundler interno para o Rolldown. Por isso a camada de PWA foi implementada manualmente (`public/manifest.webmanifest` + `public/sw.js`), em vez de usar o pacote `vite-plugin-pwa`, que ainda não é compatível com o Rolldown. O arquivo `.npmrc` com `legacy-peer-deps=true` continua no projeto como segurança para outros conflitos de versão do ecossistema Vite 8.
 
 ## 🔑 Acesso ao Sistema
 Cada pessoa pode criar sua própria conta gratuitamente pela própria tela de login (aba "Criar conta"), com e-mail e senha à sua escolha — não é mais necessário nenhum login de administrador para testar o sistema.
