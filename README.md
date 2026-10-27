@@ -4,7 +4,7 @@ O **SmartFinance** é uma plataforma de inteligência financeira desenvolvida pa
 
 ## 📸 Demonstração do Sistema
 
-### Tela de Login
+### Tela de Login:
 ![Tela de Login](./src/screenshots/tela-login.JPG)
 
 *Interface de acesso segura integrada com Context API para gerenciamento de sessão.*
