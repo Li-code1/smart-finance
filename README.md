@@ -43,12 +43,12 @@ O SmartFinance é uma aplicação **fullstack em arquitetura BaaS** (Backend as 
 
 ```mermaid
 flowchart LR
-    U[Usuário<br/>navegador / PWA] --> F[Frontend<br/>React + TypeScript + Vite]
-    F -->|supabase-js<br/>HTTPS| A[Supabase Auth<br/>e-mail + senha, JWT]
-    F -->|supabase-js<br/>HTTPS| D[(PostgreSQL<br/>tabela transacoes)]
-    A -->|auth.uid()| R{Row Level Security}
-    D --- R
-    F -->|html2canvas + jsPDF| P[Relatório PDF]
+    U["Usuário<br/>navegador / PWA"] --> F["Frontend<br/>React + TypeScript + Vite"]
+    F -->|"supabase-js (HTTPS)"| A["Supabase Auth<br/>e-mail + senha, JWT"]
+    F -->|"supabase-js (HTTPS)"| D[("PostgreSQL<br/>tabela transacoes")]
+    A -->|"identifica o usuário"| R{"Row Level Security"}
+    R -->|"filtra por auth.uid()"| D
+    F -->|"html2canvas + jsPDF"| P["Relatório PDF"]
 ```
 
 **Como as camadas se conectam**
