@@ -35,7 +35,33 @@ O SmartFinance não é apenas um dashboard de visualização; é um ecossistema 
 *   **Ícones**: Lucide React.
 *   **Backend & Persistência**: Supabase (PostgreSQL + Autenticação real de usuários).
 *   **Gestão de Estado**: Context API para gerenciamento de autenticação global.
-*   **PWA**: instalável como aplicativo (desktop/celular) e com carregamento offline do app, via manifest + service worker próprios (sem depender de plugin de build).
+*   **PWA**: instalável como aplicativo (desktop/celular) e com carregamento offline do app, via manifest + service worker gerados pelo `vite-plugin-pwa` (Workbox).
+
+## 🏗️ Arquitetura
+
+O SmartFinance é uma aplicação **fullstack em arquitetura BaaS** (Backend as a Service): o frontend React conversa diretamente com o Supabase, que fornece banco de dados, autenticação e regras de segurança — sem necessidade de manter um servidor próprio.
+
+```mermaid
+flowchart LR
+    U[Usuário<br/>navegador / PWA] --> F[Frontend<br/>React + TypeScript + Vite]
+    F -->|supabase-js<br/>HTTPS| A[Supabase Auth<br/>e-mail + senha, JWT]
+    F -->|supabase-js<br/>HTTPS| D[(PostgreSQL<br/>tabela transacoes)]
+    A -->|auth.uid()| R{Row Level Security}
+    D --- R
+    F -->|html2canvas + jsPDF| P[Relatório PDF]
+```
+
+**Como as camadas se conectam**
+
+| Camada | Responsabilidade | Onde está no código |
+|---|---|---|
+| **Frontend** | Interface, gráficos, validação de formulários (React Hook Form + Zod), projeções de economia e geração de PDF | `src/pages`, `src/components`, `src/App.tsx` |
+| **Autenticação** | Cadastro, login e sessão (JWT) via Supabase Auth; estado global com Context API | `src/context/AuthContext.tsx` |
+| **Banco de dados** | PostgreSQL com a tabela `transacoes`, índice por usuário e `user_id` preenchido automaticamente com `auth.uid()` | `supabase/schema.sql` |
+| **Segurança** | Row Level Security: 4 políticas (select, insert, update, delete) garantem que cada usuário só acesse as próprias transações, mesmo que a chave `anon` seja pública | `supabase/schema.sql` |
+| **Integração** | Cliente Supabase configurado por variáveis de ambiente | `src/lib/supabaseClient.ts` |
+
+**Por que BaaS?** Para um app de gestão pessoal, o Supabase entrega auth, banco relacional e isolamento por usuário com menos código e menos infraestrutura para manter. A segurança fica no próprio banco (RLS), e não apenas no frontend.
 
 ## 📊 Funcionalidades Principais
 
@@ -86,7 +112,7 @@ O SmartFinance não é apenas um dashboard de visualização; é um ecossistema 
     npm run dev
     ```
 
-> **Nota sobre versões**: o projeto usa Vite 8, uma versão muito recente que trocou seu bundler interno para o Rolldown. Por isso a camada de PWA foi implementada manualmente (`public/manifest.webmanifest` + `public/sw.js`), em vez de usar o pacote `vite-plugin-pwa`, que ainda não é compatível com o Rolldown. O arquivo `.npmrc` com `legacy-peer-deps=true` continua no projeto como segurança para outros conflitos de versão do ecossistema Vite 8.
+> **Nota sobre PWA**: o manifest e o service worker são gerados no build pelo `vite-plugin-pwa` (configurado em `vite.config.ts`). As leituras do Supabase usam a estratégia `NetworkFirst`, com cache de 24h para consulta offline. O arquivo `.npmrc` com `legacy-peer-deps=true` evita conflitos de peer dependencies no ecossistema Vite.
 
 ## 🔑 Acesso ao Sistema
 Cada pessoa pode criar sua própria conta gratuitamente pela própria tela de login (aba "Criar conta"), com e-mail e senha à sua escolha — não é mais necessário nenhum login de administrador para testar o sistema.
